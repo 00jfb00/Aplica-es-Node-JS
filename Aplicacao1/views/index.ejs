@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title><%= title %></title>
+        <meta charset="utf-8">
+        <!-- Styles -->
+        <link href="/stylesheets/bootstrap.css" rel="stylesheet">
+        <link href="/stylesheets/jquery.bootgrid.css" rel="stylesheet">
+    </head>
+    <body>
+        <table id="grid" data-toggle="bootgrid" data-ajax="true" data-url="https://reqres.in/api/users" class="table table-condensed table-hover table-striped">
+            <thead>
+                <tr>
+                   <th data-column-id="id">ID</th>
+                   <th data-column-id="first_name" data-formatter="nome">Nome e Sobrenome</th>
+                    <th data-column-id="avatar" data-formatter="pix">Foto</th>
+                </tr>
+            </thead>
+        </table>
+        <!-- Scripts -->
+        <script src="/javascripts/jquery-1.8.3.js"></script> 
+        <script src="/javascripts/jquery.bootgrid.js"></script>
+    </body>
+</html>

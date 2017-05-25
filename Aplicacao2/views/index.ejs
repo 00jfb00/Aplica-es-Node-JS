@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link type="text/css" rel="stylesheet" href="/stylesheets/jsgrid.min.css" />
+    <link type="text/css" rel="stylesheet" href="/stylesheets/jsgrid-theme.min.css" />    
+  </head>
+  <style>
+     .jsgrid-cell {
+        word-wrap: break-word; /* IE 5.5+ and CSS3 */
+        white-space: pre-wrap; /* CSS3 */
+        white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
+        white-space: -pre-wrap; /* Opera 4-6 */
+        white-space: -o-pre-wrap; /* Opera 7 */
+        overflow: hidden;
+        height: auto;
+        vertical-align: middle;
+        padding-top: 3px;
+        padding-bottom: 3px
+    }
+    .my-row-custom-class td:nth-child(2) {
+        background: red;
+    }
+  </style>
+  <body>
+    <div id="jsGrid"></div>
+    <script src="/javascripts/jquery-1.8.3.js"></script>
+    <script type="text/javascript" src="/javascripts/jsgrid.min.js"></script>
+    <script type="text/javascript" src="/javascripts/moment.js"></script>
+    <script type="text/javascript" src="/javascripts/bootstrap-datepicker.js"></script>
+    <script>
+
+      var MyDateField = function(config) {
+          jsGrid.Field.call(this, config);
+      };
+      
+      MyDateField.prototype = new jsGrid.Field({
+      
+          css: "date-field",            // redefine general property 'css'
+          align: "center",              // redefine general property 'align'
+      
+          myCustomProperty: "foo",      // custom property
+      
+          sorter: function(date1, date2) {
+              return new Date(date1) - new Date(date2);
+          },
+      
+          itemTemplate: function(value) {
+              return moment(new Date(value)).format('DD/MM/YYYY HH:mm:ss');
+          }
+      });
+      
+      jsGrid.fields.date = MyDateField;
+      
+      function SELECTTarefas() {
+          return JSON.parse($.ajax({
+              type: 'GET',
+              url: "/list",
+              dataType: 'json',
+              global: false,
+              async: false,
+              success: function (data) {
+                  return data;
+              },
+              error: function (data) {
+                  return [];
+              }
+          }).responseText);
+      }
+
+      function UPDATETarefas(dataWhere, dataUpdt) {
+          $.ajax({
+              type: 'POST',
+              url: "/edit",
+              data: {where: dataWhere, update: dataUpdt},
+              dataType: 'json'
+          });
+      }
+
+      function DELETETarefas(dataWhere) {
+          $.ajax({
+              type: 'POST',
+              url: "/del",
+              data: {where: dataWhere},
+              dataType: 'json'
+          });
+      }
+      
+      function INSERTTarefas(data) {
+          $.ajax({
+              type: 'POST',
+              url: "/add",
+              data: data,
+              dataType: 'json'
+          });
+      }
+
+      $("#jsGrid").jsGrid({
+          name: "tabela",
+          width: "100%",
+          height: "auto",
+
+          id: "tabela",
+          selecting: false,
+          heading: true,
+          filtering: false,
+          inserting: true,
+          editing: true,
+          sorting: true,
+          pageLoading: false,
+          paging: true,
+
+          noDataContent: "Não há tarefas",
+          confirmDeleting: true,
+          deleteConfirm: "Deseja deletar?",
+  
+          data: SELECTTarefas(),
+  
+          fields: [
+              { name: "Tarefa", type: "text", width: 250, editing: false, cellRenderer: function(value, item){ 
+                  if(item.Status  == 1){
+                    return $("<td>").text(value).css("text-decoration", "line-through");
+                  }else{
+                    return $("<td>").text(value);
+                  }
+              }},
+              { name: "Status", type: "select", items: ["Pendente", "Concluída"], valueType: "string", selectedIndex: 0, width: 50, sorting: true, inserting: false, cellRenderer: function(value, item){ 
+                  if(value == 0){
+                    return $("<td>").text(this.items[value]).css("background-color", "#ffdd99");
+                  }else{
+                    return $("<td>").text(this.items[value]).css("background-color", "#b3ff66");
+                  }
+              }},
+              { name: "Data", type: "date", myCustomProperty: "foo", width: 70, sorting: true, inserting: false, editing: false },
+              { type: "control" } 
+          ],
+          
+          onItemInserting: function(args) {
+            INSERTTarefas({ "Status": 0, "Data": moment(new Date()).format('YYYY-MM-DD HH:mm:ss'), "Tarefa": args.item.Tarefa });
+          },
+
+          onItemInserted: function(args) {
+            data: SELECTTarefas();
+            $("#jsGrid").jsGrid({data: SELECTTarefas()});
+          },
+
+          onItemUpdating: function(args) {
+            UPDATETarefas({_id: args.item._id}, {Status: args.item.Status});
+          },
+
+          onItemUpdated: function(args) {
+            data: SELECTTarefas();
+            $("#jsGrid").jsGrid({data: SELECTTarefas()});
+          },
+
+          onItemDeleting: function(args) {
+            DELETETarefas({_id: args.item._id});
+          },
+
+          onItemDeleted: function(args) {
+            data: SELECTTarefas();
+            $("#jsGrid").jsGrid({data: SELECTTarefas()});
+          }
+          
+      });
+
+    </script>
+  </body>
+</html>
